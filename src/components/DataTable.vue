@@ -4,7 +4,26 @@
       <ui-money v-model="moneyFilter" />
     </div>
 
-    <!-- Your component code here -->
+    <!-- 2. реализовать компонент @/components/DataTable.vue -->
+    <div v-if="currentPageData" class="data-table__grid-table">
+      <div class="data-table__grid-table-row data-table__grid-table-row--head" key="head" :style="gridStyle">
+        <div
+            v-for="column in columns"
+            :key="column.label"
+        >
+            {{ column.label }}
+        </div>
+      </div>
+      <div class="data-table__grid-table-row" v-for="item in currentPageData" :key="item.id" :style="gridStyle">
+        <div
+            v-for="column in columns"
+            :key="column.label"
+            :data-name="column.label"
+        >
+            {{ item[column.prop] }}
+        </div>
+      </div>
+    </div>
 
     <div class="data-table__paginator">
       <ui-pagination
@@ -17,7 +36,6 @@
 
 <script>
 export default {
-
   name: 'DataTable',
 
   props: {
@@ -38,8 +56,36 @@ export default {
   }),
 
   computed: {
+    gridStyle() {
+      return {
+        'grid-template-columns': this.columns.map((o) => o.width).join(' '),
+      };
+    },
+
+    // 6. реализовать простой фильтр для таблицы
+    // money меньше или равно пользовательскому условию
+    // TODO фильтрацию по хорошему нужно на бэк перенести для этого всё готово
+    filteredData() {
+      if (this.moneyFilter > 0) {
+        return this.rows.filter((o) => o.money <= this.moneyFilter);
+      }
+
+      return this.rows;
+    },
+
+    currentPageData() {
+      return this.filteredData.slice((this.page - 1) * this.pageSize, this.page * this.pageSize);
+    },
+
     pageCount() {
-      return Math.ceil(this.rows.length / this.pageSize);
+      return Math.ceil(this.filteredData.length / this.pageSize);
+    },
+  },
+
+  watch: {
+    moneyFilter() {
+      // при пользовании фильтром, возвращаем пользователя на первую страницу
+      this.page = 1;
     },
   },
 };

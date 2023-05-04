@@ -1,11 +1,11 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import { formatDate, formatCurrency } from '@/helpers';
 import api from '@/api';
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
-
   state: () => ({
     data: [],
     isLoading: false,
@@ -28,14 +28,42 @@ export default new Vuex.Store({
   },
 
   actions: {
-    async load({ commit }, params = {}) {
+    clearCache({ commit }) {
+      commit('setState', { isCached: false });
+      localStorage.removeItem('cachedData');
+    },
+
+    async load({ state, commit, dispatch }, params = {}) {
       commit('setState', { isLoading: true });
 
       try {
-        const { data } = await api.getPayments(params);
+        // 8. нужно реализовать кэш на стороне клиента с возможностью «сброса» и повторной загрузки данных через api
+        // для упрощения будем в localStorage хранить
+        if (state.isCached) {
+          const data = localStorage.getItem('cachedData');
 
-        if (Array.isArray(data)) {
-          commit('setState', { data });
+          if (data) {
+            commit('setState', { data: JSON.parse(data) });
+          } else {
+            dispatch('clearCache');
+          }
+        } else {
+          const { data } = await api.getPayments(params);
+
+          if (Array.isArray(data)) {
+            // трансформация данных
+            data.forEach((item) => {
+              // 4. реализовать форматирование значений в столбцах
+              // вероятно текущей команде привычно использовать luxon
+              item.dateFormatted = formatDate(item.date);
+              item.moneyFormatted = formatCurrency(item.money);
+            });
+
+            commit('setState', { data });
+
+            localStorage.setItem('cachedData', JSON.stringify(data));
+            commit('setState', { isCached: true });
+          }
         }
       } catch (e) {
         // eslint-disable-next-line no-alert

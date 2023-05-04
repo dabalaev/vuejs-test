@@ -1,0 +1,75 @@
+.data-table {
+    &__filter {
+        display: flex;
+        justify-content: flex-end;
+        margin: 0 0 1rem;
+    }
+
+    &__grid-table {
+        margin: 0 0 1rem;
+    }
+
+    &__grid-table-row {
+        display: grid;
+        // grid-template-columns: ; // задается через html
+
+        // 3. на разрешении <= 768 таблица должна «схлопываться»
+        @include mq(767) {
+            grid-template-columns: 1fr !important;
+            padding: 1rem;
+            border: 1px solid gray;
+            margin-bottom: 1rem;
+        }
+
+        > * {
+            padding: 10px 10px;
+            text-align: center;
+            border-width: 1px 0 0 1px;
+            border-style: solid;
+            border-color: gray;
+
+            @include mq(767) {
+                padding: 0;
+                text-align: left;
+                border-width: 0;
+                margin: 0 0 1.5rem;
+
+                &::before {
+                    content: attr(data-name);
+                    display: block;
+                    font-weight: 700;
+                }
+            }
+
+            &:last-child {
+                border-right-width: 1px;
+
+                @include mq(767) {
+                    border-width: 0;
+                    margin: 0;
+                }
+            }
+        }
+
+        &--head {
+            @include mq(767) {
+                display: none;
+            }
+
+            > * {
+                font-weight: 700;
+                padding: 7px 10px;
+            }
+        }
+
+        &:last-child {
+            > * {
+                border-bottom-width: 1px;
+
+                @include mq(767) {
+                    border-width: 0;
+                }
+            }
+        }
+    }
+}
